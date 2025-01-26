@@ -1,3 +1,5 @@
+// JavaScript for handling user interactions
+
 // DOM Elements
 const loginSection = document.getElementById("login-section");
 const signupSection = document.getElementById("signup-section");
@@ -10,10 +12,14 @@ const userRoleSpan = document.getElementById("user-role");
 const studentSection = document.getElementById("student-section");
 const teacherSection = document.getElementById("teacher-section");
 const logoutButton = document.getElementById("logout");
-const uploadVideoButton = document.getElementById("upload-button");
-const videoUploadInput = document.getElementById("video-upload");
+const viewResultsButton = document.getElementById("view-results");
+const teacherResults = document.getElementById("teacher-results");
+const getScoreButton = document.getElementById("get-score");
+const resultsDiv = document.getElementById("results");
 const uploadProgress = document.getElementById("upload-progress");
 
+// Simulated user data storage
+let users = [];
 let currentUser = null;
 
 // Show sign-up section
@@ -28,7 +34,6 @@ backToLoginButton.addEventListener("click", () => {
     loginSection.style.display = "block";
 });
 
-// Handle sign-up form submission
 signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const newUsername = document.getElementById("new-username").value;
@@ -36,10 +41,10 @@ signupForm.addEventListener("submit", async (event) => {
     const role = document.getElementById("role").value;
 
     try {
-        const response = await fetch("https://teamproject1app.azurewebsites.net/api/Signup", {
+        const response = await fetch("https://athletevideo.azurewebsites.net/api/signup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: newUsername, passwordHash: newPassword, role })
+            body: JSON.stringify({ email: newUsername, passwordHash: newPassword }),
         });
 
         if (response.ok) {
@@ -63,10 +68,10 @@ loginForm.addEventListener("submit", async (event) => {
     const password = document.getElementById("password").value;
 
     try {
-        const response = await fetch("https://teamproject1app.azurewebsites.net/api/Login", {
+        const response = await fetch("https://athletevideo.azurewebsites.net/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password }),
         });
 
         if (response.ok) {
@@ -81,7 +86,7 @@ loginForm.addEventListener("submit", async (event) => {
                 teacherSection.style.display = "none";
             } else {
                 teacherSection.style.display = "block";
-                studentSection.style.display = "none";
+                studentSection.style.display = "none"; // Teachers see their section only
             }
         } else {
             const error = await response.json();
@@ -93,12 +98,20 @@ loginForm.addEventListener("submit", async (event) => {
     }
 });
 
-// Handle video upload
-uploadVideoButton.addEventListener("click", async () => {
-    const file = videoUploadInput.files[0];
+// Logout
+logoutButton.addEventListener("click", () => {
+    currentUser = null;
+    mainPage.style.display = "none";
+    loginSection.style.display = "block";
+});
+
+// Handle "Get Score" button for students
+getScoreButton.addEventListener("click", async () => {
+    const fileInput = document.getElementById("video-upload");
+    const file = fileInput.files[0];
 
     if (!file) {
-        alert("Please select a video file.");
+        alert("Please upload a video file.");
         return;
     }
 
@@ -109,19 +122,19 @@ uploadVideoButton.addEventListener("click", async () => {
     formData.append("file", file);
 
     try {
-        const response = await fetch("https://teamproject1app.azurewebsites.net/api/UploadVideo", {
+        const response = await fetch("https://athletevideo.azurewebsites.net/api/UploadVideo", {
             method: "POST",
-            body: formData
+            body: formData,
         });
 
         uploadProgress.style.display = "none";
 
         if (response.ok) {
-            const result = await response.text();
-            alert(`Video uploaded successfully: ${result}`);
+            const result = await response.json();
+            resultsDiv.innerHTML = `<h3>Evaluation Result:</h3><pre>${JSON.stringify(result, null, 2)}</pre>`;
         } else {
-            const error = await response.text();
-            alert(`Error: ${error}`);
+            const error = await response.json();
+            alert(`Error: ${error.error}`);
         }
     } catch (error) {
         console.error("Error uploading video:", error);
@@ -130,9 +143,48 @@ uploadVideoButton.addEventListener("click", async () => {
     }
 });
 
-// Logout
-logoutButton.addEventListener("click", () => {
-    currentUser = null;
-    mainPage.style.display = "none";
-    loginSection.style.display = "block";
+// Handle "View All Results" button for teachers
+viewResultsButton.addEventListener("click", async () => {
+    if (currentUser.role === "teacher") {
+        try {
+            const response = await fetch("https://athletevideo.azurewebsites.net/api/get_results");
+            if (response.ok) {
+                const data = await response.json();
+                teacherResults.innerHTML = `<h3>All Student Results:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } else {
+                alert("Error fetching results.");
+            }
+        } catch (error) {
+            console.error("Error fetching results:", error);
+        }
+    } else {
+        alert("Error: Only teachers are allowed to view this section.");
+    }
+});
+
+// Update sport disciplines for student and teacher sections
+const studentSportSelect = document.getElementById("sport");
+const teacherSportSelect = document.getElementById("sport-teacher");
+
+const disciplines = [
+    "Sprint Starts",
+    "Shot Put",
+    "High Jump",
+    "Hurdles",
+    "Long Jump",
+    "Discus Throw",
+    "Javelin",
+    "Relay Receiver Performance",
+];
+
+disciplines.forEach((discipline) => {
+    const studentOption = document.createElement("option");
+    studentOption.value = discipline.toLowerCase().replace(/\s+/g, "-");
+    studentOption.textContent = discipline;
+    studentSportSelect.appendChild(studentOption);
+
+    const teacherOption = document.createElement("option");
+    teacherOption.value = discipline.toLowerCase().replace(/\s+/g, "-");
+    teacherOption.textContent = discipline;
+    teacherSportSelect.appendChild(teacherOption);
 });
