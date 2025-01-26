@@ -5,11 +5,12 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
+using System.Threading.Tasks;
 
 public static class GetSasToken
 {
     [Function("GetSasToken")]
-    public static HttpResponseData Run(
+    public static async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
         FunctionContext executionContext)
     {
@@ -25,7 +26,7 @@ public static class GetSasToken
         {
             log.LogError("AzureWebJobsStorageAccountKey environment variable is not set.");
             var badResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
-            badResponse.WriteString("Storage account key is missing.");
+            await badResponse.WriteStringAsync("Storage account key is missing.");
             return badResponse;
         }
 
@@ -38,7 +39,8 @@ public static class GetSasToken
         };
 
         // Grant write permissions
-        sasBuilder.SetPermissions(BlobContainerSasPermissions.Write);
+        sasBuilder.SetPermissions(BlobContainerSasPermissions.Write | BlobContainerSasPermissions.Read);
+;
 
         // Generate the SAS token
         var sasToken = sasBuilder.ToSasQueryParameters(
@@ -50,7 +52,7 @@ public static class GetSasToken
 
         // Return the SAS URL
         var response = req.CreateResponse(HttpStatusCode.OK);
-        response.WriteString(fullSasUrl);
+        await response.WriteStringAsync(fullSasUrl); // Use async method
         return response;
     }
 }
