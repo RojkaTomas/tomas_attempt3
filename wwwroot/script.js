@@ -18,6 +18,7 @@ const getScoreButton = document.getElementById("get-score");
 const resultsDiv = document.getElementById("results");
 const uploadProgress = document.getElementById("upload-progress");
 
+
 // Simulated user data storage
 let users = [];
 let currentUser = null;
@@ -41,7 +42,7 @@ signupForm.addEventListener("submit", async (event) => {
     const role = document.getElementById("role").value;
 
     try {
-        const response = await fetch("https://<your-azure-function-app>.azurewebsites.net/api/signup", {
+        const response = await fetch("https://teamproject1app.azurewebsites.net/api/signup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: newUsername, passwordHash: newPassword })
@@ -61,6 +62,40 @@ signupForm.addEventListener("submit", async (event) => {
     }
 });
 
+const uploadVideo = async () => {
+    const fileInput = document.getElementById('video-upload');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert('Please select a video file.');
+        return;
+    }
+
+    // Get the SAS token from your backend (Azure Function or API)
+    const response = await fetch('https://teamproject1app.azurewebsites.net/api/GetSasToken');
+    if (!response.ok) {
+        alert('Failed to get SAS token.');
+        return;
+    }
+
+    const sasToken = await response.text();
+
+    // Upload the file to the blob storage container
+    const blobUrl = `https://teamproject1.blob.core.windows.net/uploads/${file.name}${sasToken}`;
+    const uploadResponse = await fetch(blobUrl, {
+        method: 'PUT',
+        headers: { 'x-ms-blob-type': 'BlockBlob' },
+        body: file
+    });
+
+    if (uploadResponse.ok) {
+        alert('Video uploaded successfully!');
+    } else {
+        alert('Failed to upload video.');
+    }
+};
+
+document.getElementById('upload-button').addEventListener('click', uploadVideo);
 
 
 // Handle login form submission
