@@ -12,7 +12,7 @@ public static class UploadVideoFunction
 {
     [Function("UploadVideo")]
     public static async Task<HttpResponseData> UploadVideo(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "UploadVideo")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "UploadVideo")] HttpRequestData req,
         FunctionContext context)
     {
         var logger = context.GetLogger("UploadVideo");
