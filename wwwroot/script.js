@@ -34,6 +34,7 @@ backToLoginButton.addEventListener("click", () => {
     loginSection.style.display = "block";
 });
 
+// Handle sign-up form submission
 signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const newUsername = document.getElementById("new-username").value;
@@ -98,14 +99,7 @@ loginForm.addEventListener("submit", async (event) => {
     }
 });
 
-// Logout
-logoutButton.addEventListener("click", () => {
-    currentUser = null;
-    mainPage.style.display = "none";
-    loginSection.style.display = "block";
-});
-
-// Handle "Get Score" button for students
+// Handle video upload
 getScoreButton.addEventListener("click", async () => {
     const fileInput = document.getElementById("video-upload");
     const file = fileInput.files[0];
@@ -122,7 +116,7 @@ getScoreButton.addEventListener("click", async () => {
     formData.append("file", file);
 
     try {
-        const response = await fetch("https://athletevideo.azurewebsites.net/api/UploadVideo", {
+        const response = await fetch("https://athletevideo.azurewebsites.net/api/uploadvideo", {
             method: "POST",
             body: formData,
         });
@@ -143,48 +137,9 @@ getScoreButton.addEventListener("click", async () => {
     }
 });
 
-// Handle "View All Results" button for teachers
-viewResultsButton.addEventListener("click", async () => {
-    if (currentUser.role === "teacher") {
-        try {
-            const response = await fetch("https://athletevideo.azurewebsites.net/api/get_results");
-            if (response.ok) {
-                const data = await response.json();
-                teacherResults.innerHTML = `<h3>All Student Results:</h3><pre>${JSON.stringify(data, null, 2)}</pre>`;
-            } else {
-                alert("Error fetching results.");
-            }
-        } catch (error) {
-            console.error("Error fetching results:", error);
-        }
-    } else {
-        alert("Error: Only teachers are allowed to view this section.");
-    }
-});
-
-// Update sport disciplines for student and teacher sections
-const studentSportSelect = document.getElementById("sport");
-const teacherSportSelect = document.getElementById("sport-teacher");
-
-const disciplines = [
-    "Sprint Starts",
-    "Shot Put",
-    "High Jump",
-    "Hurdles",
-    "Long Jump",
-    "Discus Throw",
-    "Javelin",
-    "Relay Receiver Performance",
-];
-
-disciplines.forEach((discipline) => {
-    const studentOption = document.createElement("option");
-    studentOption.value = discipline.toLowerCase().replace(/\s+/g, "-");
-    studentOption.textContent = discipline;
-    studentSportSelect.appendChild(studentOption);
-
-    const teacherOption = document.createElement("option");
-    teacherOption.value = discipline.toLowerCase().replace(/\s+/g, "-");
-    teacherOption.textContent = discipline;
-    teacherSportSelect.appendChild(teacherOption);
+// Logout
+logoutButton.addEventListener("click", () => {
+    currentUser = null;
+    mainPage.style.display = "none";
+    loginSection.style.display = "block";
 });
