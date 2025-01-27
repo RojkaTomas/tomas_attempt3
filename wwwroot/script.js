@@ -113,28 +113,25 @@ getScoreButton.addEventListener("click", async () => {
     uploadProgress.textContent = "Uploading video...";
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", videoFile);
 
     try {
-        const response = await fetch("https://athletevideo.azurewebsites.net/api/uploadvideo", {
+        const response = await fetch("https://athletevideo.azurewebsites.net/api/UploadVideo", {
             method: "POST",
             body: formData,
         });
 
-        uploadProgress.style.display = "none";
-
         if (response.ok) {
-            const result = await response.json();
-            resultsDiv.innerHTML = `<h3>Evaluation Result:</h3><pre>${JSON.stringify(result, null, 2)}</pre>`;
+            alert("Video uploaded successfully!");
         } else {
             const error = await response.json();
-            alert(`Error: ${error.error}`);
+            alert(`Upload failed: ${error.message}`);
         }
     } catch (error) {
-        console.error("Error uploading video:", error);
-        uploadProgress.style.display = "none";
-        alert("An error occurred while uploading the video.");
+        console.error("Error during upload:", error);
+        alert("An error occurred.");
     }
+
 });
 
 // Logout
